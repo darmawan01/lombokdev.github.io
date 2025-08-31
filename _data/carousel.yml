@@ -12,6 +12,17 @@ images:
   - "assets/lombokdev/images/ldm2.jpg"
 
 # Optional captions for each image
+captions:
+  - "Lombok Dev Community Gathering"
+  - "Sharing Knowledge and Experiences"
+  - "Engaging Discussions"
+  - "Collaborative Learning"
+  - "Building Connections"
+  - "Innovative Ideas"
+  - "Tech Enthusiasts Unite"
+  - "Empowering Developers"
+  - "Inspiring Future Tech Leaders"
+  - "Fostering a Tech Ecosystem"
 
 # Carousel settings
 settings:
