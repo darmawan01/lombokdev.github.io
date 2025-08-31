@@ -33,6 +33,9 @@ plugins:
 collections:
   projects:
     output: false
+  events:
+    output: true
+    permalink: /events/:name
 
 # Defaults
 defaults:

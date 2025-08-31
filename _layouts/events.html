@@ -1,0 +1,39 @@
+---
+layout: default
+---
+
+<!-- _layouts/event.html -->
+<article class="pt-24 pb-16 px-6 max-w-4xl mx-auto">
+  {% if page.banner %}
+    <img src="{{ page.banner }}" alt="{{ page.title }}" class="w-full rounded-xl mb-6">
+  {% endif %}
+
+  <h1 class="text-4xl font-bold mb-2">{{ page.title }}</h1>
+  <p class="text-gray-500 mb-6">📅 {{ page.date | date: '%A, %B %d, %Y' }} • 📍 {{ page.location }} • 🕒 {{ page.duration }}</p>
+
+  {% if page.description %}
+    <p class="text-lg text-gray-700 mb-8">{{ page.description }}</p>
+  {% endif %}
+
+  {% if page.agenda %}
+    <h2 class="text-2xl font-semibold mb-3">Agenda</h2>
+    <ul class="space-y-2 mb-6">
+      {% for item in page.agenda %}
+        <li>⏰ {{ item.time }} — <strong>{{ item.topic }}</strong>{% if item.speaker %} ({{ item.speaker }}){% endif %}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if page.speakers %}
+    <h2 class="text-2xl font-semibold mb-3">Speakers</h2>
+    <ul class="space-y-2 mb-6">
+      {% for sp in page.speakers %}
+        <li><strong>{{ sp.name }}</strong>{% if sp.topic %} — {{ sp.topic }}{% endif %}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if page.registration_url %}
+    <a href="{{ page.registration_url }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Register</a>
+  {% endif %}
+</article>
