@@ -15,8 +15,16 @@ layout: default
             class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow-md text-sm mt-3">
             Link Google
           </button>
+          <label id="email" class="block text-sm text-gray-500 mt-1">Use Google One Tap to autofill email.</label>
         </div>
-        
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="w-full">
+          <label class="block text-sm font-medium text-gray-700">Full Name</label>
+            <input type="text" name="name" id="name" required
+                class="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
+        </div>
       </div>
 
       <!-- Dynamic fields from forms -->
@@ -34,6 +42,19 @@ layout: default
               <option value="{{ option }}">{{ option }}</option>
             {% endfor %}
           </select>
+        {% elsif field.type == "check" %}
+          <div class="flex items-start mt-2">
+            <input type="checkbox" name="{{ field.name }}" id="{{ field.name }}"
+              {% if field.required %}required{% endif %}
+              class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+            <label for="{{ field.name }}" class="ml-2 block text-sm text-gray-600">
+              {% if field.details %}
+                {{ field.details | markdownify }}
+              {% else %}
+                I agree to {{ field.title }}
+              {% endif %}
+            </label>
+          </div>
         {% endif %}
       </div>
       {% endfor %}
@@ -62,13 +83,15 @@ layout: default
   function handleCredentialResponse(response) {
     try {
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      document.getElementById('email').value = payload.email;
+      document.getElementById('email').innerText = payload.email;
+      document.getElementById('name').value = payload.name || '';
       alert("Google account linked: " + payload.email);
     } catch (err) {
       console.error("Google decode failed", err);
     }
   }
 
+  // TODO: Replace with your actual Google Client ID
   window.onload = function() {
     google.accounts.id.initialize({
       client_id: "YOUR_GOOGLE_CLIENT_ID",
