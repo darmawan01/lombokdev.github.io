@@ -1,0 +1,99 @@
+---
+layout: default
+---
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+  <div class="max-w-2xl w-full bg-white shadow-lg rounded-2xl p-8 space-y-6">
+    <h2 class="text-3xl font-bold text-center text-gray-800"> {{ page.title }} </h2>
+    <form id="registration-form" class="space-y-5">
+      
+      <div class="flex items-center gap-4">
+        <div class="w-full">
+          <label class="block text-sm font-medium text-gray-700">Email Address</label>
+          <!-- Google Linking -->
+          <button type="button" id="google-link-btn"
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl shadow-md text-sm mt-3">
+            Link Google
+          </button>
+        </div>
+        
+      </div>
+
+      <!-- Dynamic fields from forms -->
+      {% for field in page.forms %}
+      <div>
+        <label class="block text-sm font-medium text-gray-700">{{ field.title }}</label>
+        {% if field.type == "text" %}
+          <input type="text" name="{{ field.name }}" {% if field.required %}required{% endif %}
+            class="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"/>
+        {% elsif field.type == "options" %}
+          <select name="{{ field.name }}" {% if field.required %}required{% endif %}
+            class="mt-1 block w-full rounded-xl border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            <option value="">-- Select {{ field.title }} --</option>
+            {% for option in field.options %}
+              <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <button type="submit"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-xl shadow-md transition">
+        Register
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+  const openAt = new Date("{{ page.open_at }}");
+  const closeAt = new Date("{{ page.closed_at }}");
+  const now = new Date();
+
+  const form = document.getElementById("registration-form");
+  if (now < openAt || now > closeAt) {
+    form.innerHTML = "<p class='text-center text-gray-600'>Registration is closed.</p>";
+  }
+
+  // Handle Google Credential Response
+  function handleCredentialResponse(response) {
+    try {
+      const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      document.getElementById('email').value = payload.email;
+      alert("Google account linked: " + payload.email);
+    } catch (err) {
+      console.error("Google decode failed", err);
+    }
+  }
+
+  window.onload = function() {
+    google.accounts.id.initialize({
+      client_id: "YOUR_GOOGLE_CLIENT_ID",
+      callback: handleCredentialResponse
+    });
+  };
+
+  // Trigger Google One Tap when clicking "Link Google"
+  document.getElementById("google-link-btn").addEventListener("click", () => {
+    google.accounts.id.prompt(); // Opens One Tap popup
+  });
+
+  // Form submit
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    const response = await fetch("{{ page.api_url }}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (response.ok) {
+      alert("Registration successful!");
+    } else {
+      alert("Failed to register.");
+    }
+  });
+</script>

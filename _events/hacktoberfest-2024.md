@@ -1,10 +1,10 @@
 ---
 layout: events
-title: "Hacktoberfest Lombok 2025"
-event_date: 2025-08-15
-banner: "../assets/lombokdev/images/dengerpetuah.jpg"
+title: "Hacktoberfest Lombok 2024"
+event_date: 2024-09-15
+banner: "../assets/lombokdev/images/1.JPG"
 location: "Mataram, Lombok"
-duration: "1 Days"
+duration: "2 Days"
 description: "A gathering of developers, designers, and tech enthusiasts..."
 agenda:
   - time: "09:00"
@@ -18,5 +18,8 @@ speakers:
     topic: "Scaling Startups"
   - name: "Jane Smith"
     topic: "AI in Mobile Apps"
+
+gallery_url: "/galleries/meetupxyz"
+
 
 ---

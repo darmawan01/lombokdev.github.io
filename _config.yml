@@ -31,12 +31,15 @@ plugins:
 
 # Collections
 collections:
-  projects:
-    output: false
   events:
     output: true
     permalink: /events/:name
-
+  galleries:
+    output: true
+    permalink: /galleries/:path
+  register:
+    output: true
+    permalink: /register/:name/
 # Defaults
 defaults:
   - scope:
