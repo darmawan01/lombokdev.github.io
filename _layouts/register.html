@@ -105,7 +105,8 @@ layout: default
   window.onload = function() {
     google.accounts.id.initialize({
       client_id: "820930631538-pcpv8qid6rpvgeirjjksbjp06u1f2oi6.apps.googleusercontent.com",
-      callback: handleCredentialResponse
+      callback: handleCredentialResponse,
+      auto_select: true,   // Auto prompt if one account
     });
   };
 
