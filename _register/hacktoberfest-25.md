@@ -4,6 +4,7 @@ title: Hacktoberfest 2025 Registration
 api_url: "https://example.com/api/register"
 open_at: 2025-08-01
 closed_at: 2025-10-01
+event_id: 26b5ada4-8808-45ed-90ca-c66301221b33
 
 forms:
   - title: Phone

@@ -79,19 +79,29 @@ layout: default
     form.innerHTML = "<p class='text-center text-gray-600'>Registration is closed.</p>";
   }
 
+  // Store Google credentials
+  let googleUser = { email: null, gid: null, name: null };
+
   // Handle Google Credential Response
   function handleCredentialResponse(response) {
     try {
       const payload = JSON.parse(atob(response.credential.split('.')[1]));
+      googleUser = {
+        email: payload.email,
+        gid: payload.sub, // Google unique ID
+        name: payload.name || ""
+      };
+
       document.getElementById('email').innerText = payload.email;
-      document.getElementById('name').value = payload.name || '';
+      if (!document.getElementById('name').value) {
+        document.getElementById('name').value = payload.name || '';
+      }
       alert("Google account linked: " + payload.email);
     } catch (err) {
       console.error("Google decode failed", err);
     }
   }
 
-  // TODO: Replace with your actual Google Client ID
   window.onload = function() {
     google.accounts.id.initialize({
       client_id: "820930631538-pcpv8qid6rpvgeirjjksbjp06u1f2oi6.apps.googleusercontent.com",
@@ -101,22 +111,51 @@ layout: default
 
   // Trigger Google One Tap when clicking "Link Google"
   document.getElementById("google-link-btn").addEventListener("click", () => {
-    google.accounts.id.prompt(); // Opens One Tap popup
+    google.accounts.id.prompt();
   });
 
   // Form submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    const response = await fetch("{{ page.api_url }}", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (response.ok) {
-      alert("Registration successful!");
-    } else {
-      alert("Failed to register.");
+
+    if (!googleUser.email || !googleUser.gid) {
+      alert("Please link your Google account first.");
+      return;
+    }
+
+    const formData = Object.fromEntries(new FormData(form).entries());
+
+    // Collect dynamic fields as additionaldata
+    const { name, ...additionaldata } = formData;
+
+    const payload = {
+      email: googleUser.email,
+      gid: googleUser.gid,
+      fullname: name || googleUser.name,
+      additionaldata,
+      event_id: "{{ page.event_id }}" // must be provided in your Jekyll front matter
+    };
+
+    try {
+      const response = await fetch("https://xrxfvavgbcphhywznrfq.supabase.co/functions/v1/register-event", { // registration URL always use this
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        alert("✅ Registration successful!");
+        form.reset();
+      } else if (response.status === 409) {
+        alert("⚠️ You have already registered for this event.");
+      } else {
+        console.error(result);
+        alert("❌ Failed to register. Please try again.");
+      }
+    } catch (err) {
+      console.error("Request failed:", err);
+      alert("❌ Network error. Please try again.");
     }
   });
 </script>
