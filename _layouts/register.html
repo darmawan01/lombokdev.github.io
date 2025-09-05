@@ -149,6 +149,7 @@ layout: default
     };
 
     overlay.classList.remove("hidden"); // Show loading
+    var success = false;
 
     try {
       const response = await fetch("https://xrxfvavgbcphhywznrfq.supabase.co/functions/v1/register-event", { // registration URL always use this
@@ -160,9 +161,11 @@ layout: default
       const result = await response.json();
       if (response.ok && result.success) {
         alert("✅ Registration successful!");
+        success = true;
         // form.reset();
       } else if (response.status === 409) {
         alert("⚠️ You have already registered for this event.");
+        success = true;
       } else {
         console.error(result);
         alert("❌ Failed to register. Please try again.");
@@ -172,7 +175,9 @@ layout: default
       alert("❌ Network error. Please try again.");
     } finally {
       overlay.classList.add("hidden"); // Hide loading
-      window.location.href = "/events"; // Redirect to events page after registration
+      if (success) {
+        window.location.href = "/events"; // Redirect to events page after registration
+      }
     }
   });
 </script>
