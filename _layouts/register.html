@@ -2,7 +2,7 @@
 layout: default
 ---
 
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+<div class="min-h-screen flex items-center justify-center py-12 px-4">
   <div class="max-w-2xl w-full bg-white shadow-lg rounded-2xl p-8 space-y-6">
     <h2 class="text-3xl font-bold text-center text-gray-800"> {{ page.title }} </h2>
     <form id="registration-form" class="space-y-5">
@@ -94,7 +94,7 @@ layout: default
   // TODO: Replace with your actual Google Client ID
   window.onload = function() {
     google.accounts.id.initialize({
-      client_id: "YOUR_GOOGLE_CLIENT_ID",
+      client_id: "820930631538-pcpv8qid6rpvgeirjjksbjp06u1f2oi6.apps.googleusercontent.com",
       callback: handleCredentialResponse
     });
   };
