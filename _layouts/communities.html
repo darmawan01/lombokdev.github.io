@@ -26,7 +26,7 @@ layout: default
 </style>
 
 <div class="communities-wrap pt-44 pb-16 px-6 max-w-4xl mx-auto">
-  <h1>{{ page.title | default: "Communities" }}</h1>
+  <h2>{{ page.title | default: "Communities" }}</h2>
 
   <div class="controls">
     <input id="search" type="search" placeholder="Search speakers (name / topic / linkedin)..." />
@@ -48,10 +48,12 @@ layout: default
   {% for event in site.events %}
     {% if event.speakers %}
       {% for sp in event.speakers %}
-        {% comment %} original display url (may include https) or fallback to name {% endcomment %}
-        {% assign display_url = sp.url | default: sp.name %}
-        {% comment %} create a normalized key for dedupe:
-                    strip scheme, www, remove slashes, lower-case {% endcomment %}
+        {% if sp.url contains "linkedin.com" %}
+            {% assign display_url = sp.url %}
+        {% else %}
+            {% continue %}
+        {% endif %}
+
         {% assign key = display_url | remove: "https://" | remove: "http://" | remove: "www." | replace: "/", "" | downcase %}
 
         {% assign updated = false %}
@@ -65,7 +67,6 @@ layout: default
             {% assign ex_name = parts[2] %}
             {% assign ex_count = parts[3] %}
             {% if ex_key == key %}
-              {% comment %} choose longest name and increment count {% endcomment %}
               {% assign cur_name = sp.name %}
               {% if cur_name.size > ex_name.size %}
                 {% assign chosen_name = cur_name %}
@@ -92,27 +93,61 @@ layout: default
     {% endif %}
   {% endfor %}
 
-  <!-- Render the grid (render order is the insertion order; client JS will sort) -->
+  <!-- Render the grid -->
   <div id="speakers-grid">
-    {% for item in speakers %}
-      {% if item != "" %}
-        {% assign parts = item | split: "|||" %}
-        {% assign key = parts[0] %}
-        {% assign display_url = parts[1] %}
-        {% assign name = parts[2] %}
-        {% assign count = parts[3] %}
-        <!-- anchor to open linkedin in new tab; data attributes used for JS sorting/filtering -->
-        <a class="speaker-card" href="{{ display_url }}" target="_blank" rel="noopener noreferrer"
-           data-name="{{ name | escape }}" data-url="{{ display_url | escape }}" data-count="{{ count }}">
-          <!-- avatar via unavatar.io; pass URL-encoded display_url -->
-          <img src="https://unavatar.io/{{ display_url | url_encode }}" alt="{{ name | escape }}"
-               onerror="this.onerror=null;this.src='/assets/img/avatar-placeholder.png'">
-          <div class="speaker-name">{{ name }}</div>
-          <div class="speaker-badge">{{ count }}x</div>
-        </a>
-      {% endif %}
-    {% endfor %}
-  </div>
+  {% for item in speakers %}
+    {% if item != "" %}
+      {% assign parts = item | split: "|||" %}
+      {% assign key = parts[0] %}
+      {% assign display_url = parts[1] %}
+      {% assign name = parts[2] %}
+      {% assign count = parts[3] %}
+
+      {%- comment -%}
+        Image filename resolution order (priority jpeg > jpg > png):
+        1. slug-first.jpeg / .jpg / .png
+        2. full-name.jpeg / .jpg / .png
+        3. first-word.jpeg / .jpg / .png
+        4. placeholder.png
+      {%- endcomment -%}
+
+      {% assign slug = display_url | split: "/" | last %}
+      {% assign slug_first = slug | split: "-" | first %}
+      {% assign name_file = name | downcase | replace: " ", "-" %}
+      {% assign first_word = name | split: " " | first | downcase %}
+
+      {% assign file_jpeg_slug = "../assets/lombokdev/speakers/" | append: slug_first | append: ".jpeg" %}
+      {% assign file_jpg_slug  = "../assets/lombokdev/speakers/" | append: slug_first | append: ".jpg" %}
+      {% assign file_png_slug  = "../assets/lombokdev/speakers/" | append: slug_first | append: ".png" %}
+
+      {% assign file_jpeg_name = "../assets/lombokdev/speakers/" | append: name_file | append: ".jpeg" %}
+      {% assign file_jpg_name  = "../assets/lombokdev/speakers/" | append: name_file | append: ".jpg" %}
+      {% assign file_png_name  = "../assets/lombokdev/speakers/" | append: name_file | append: ".png" %}
+
+      {% assign file_jpeg_first = "../assets/lombokdev/speakers/" | append: first_word | append: ".jpeg" %}
+      {% assign file_jpg_first  = "../assets/lombokdev/speakers/" | append: first_word | append: ".jpg" %}
+      {% assign file_png_first  = "../assets/lombokdev/speakers/" | append: first_word | append: ".png" %}
+
+      <a class="speaker-card" href="{{ display_url }}" target="_blank" rel="noopener noreferrer"
+         data-name="{{ name | escape }}" data-url="{{ display_url | escape }}" data-count="{{ count }}">
+        <img src="{{ file_jpeg_slug }}" alt="{{ name | escape }}"
+             onerror="this.onerror=null;
+                      this.src='{{ file_jpg_slug }}';
+                      this.onerror=function(){this.src='{{ file_png_slug }}'};
+                      this.onerror=function(){this.src='{{ file_jpeg_name }}'};
+                      this.onerror=function(){this.src='{{ file_jpg_name }}'};
+                      this.onerror=function(){this.src='{{ file_png_name }}'};
+                      this.onerror=function(){this.src='{{ file_jpeg_first }}'};
+                      this.onerror=function(){this.src='{{ file_jpg_first }}'};
+                      this.onerror=function(){this.src='{{ file_png_first }}'};
+                      this.onerror=function(){this.src='../assets/lombokdev/speakers/placeholder.png'};">
+        <div class="speaker-name">{{ name }}</div>
+        <div class="speaker-badge">{{ count }}x</div>
+      </a>
+    {% endif %}
+  {% endfor %}
+</div>
+
 </div>
 
 <script>
@@ -128,7 +163,6 @@ layout: default
     function filterCards() {
       const term = (searchInput.value || '').trim().toLowerCase();
       getCards().forEach(card => {
-        // searchable text: name + url
         const name = card.dataset.name.toLowerCase();
         const url = card.dataset.url.toLowerCase();
         const visible = name.includes(term) || url.includes(term);
@@ -137,7 +171,7 @@ layout: default
     }
 
     function sortCards(order) {
-      const cards = getCards().slice(); // copy
+      const cards = getCards().slice();
       cards.sort((a,b) => {
         const nameA = a.dataset.name.toLowerCase();
         const nameB = b.dataset.name.toLowerCase();
@@ -146,13 +180,11 @@ layout: default
         if (order === 'most') {
           const ca = parseInt(a.dataset.count || '0', 10);
           const cb = parseInt(b.dataset.count || '0', 10);
-          // if same count, tie-break by name A→Z
           if (cb === ca) return nameA.localeCompare(nameB);
           return cb - ca;
         }
         return 0;
       });
-      // append in sorted order (preserves only visible display settings)
       cards.forEach(c => grid.appendChild(c));
     }
 
