@@ -55,7 +55,7 @@ layout: default
 </style>
 
 <div class="communities-wrap pt-44 pb-16 px-6 max-w-4xl mx-auto">
-  <h2>{{ page.title | default: "Communities" }}</h2>
+  <h1 class="text-3xl font-bold mb-8">{{ page.title | default: "Communities" }}</h1>
   <p class="text-gray-600 mb-6">A curated list of speakers who have presented at Lombok Dev Meetups and Events over the years. Connect with these talented individuals on LinkedIn to expand your professional network and stay updated on their latest endeavors.</p>
 
 
@@ -64,7 +64,7 @@ layout: default
     <select id="sort">
       <option value="az">Sort A → Z</option>
       <option value="za">Sort Z → A</option>
-      <option value="most">Most Appearances</option>
+      <!-- <option value="most">Most Appearances</option> -->
     </select>
   </div>
 
@@ -171,7 +171,7 @@ layout: default
                       this.onerror=function(){this.src='{{ file_png_first }}'};
                       this.onerror=function(){this.src='../assets/lombokdev/speakers/placeholder.png'};">
         <div class="speaker-name">{{ name }}</div>
-        <div class="speaker-badge">{{ count }}x</div>
+        <!-- <div class="speaker-badge">{{ count }}x</div> -->
       </a>
     {% endif %}
   {% endfor %}
@@ -206,12 +206,12 @@ layout: default
         const nameB = b.dataset.name.toLowerCase();
         if (order === 'az') return nameA.localeCompare(nameB);
         if (order === 'za') return nameB.localeCompare(nameA);
-        if (order === 'most') {
-          const ca = parseInt(a.dataset.count || '0', 10);
-          const cb = parseInt(b.dataset.count || '0', 10);
-          if (cb === ca) return nameA.localeCompare(nameB);
-          return cb - ca;
-        }
+        // if (order === 'most') {
+        //   const ca = parseInt(a.dataset.count || '0', 10);
+        //   const cb = parseInt(b.dataset.count || '0', 10);
+        //   if (cb === ca) return nameA.localeCompare(nameB);
+        //   return cb - ca;
+        // }
         return 0;
       });
       cards.forEach(c => grid.appendChild(c));
