@@ -1,6 +1,6 @@
 ---
 layout: events
-title: "Hacktoberfest Lombok 2025"
+title: "TEMPLATE EVENT - !!!DO NOT REGISTER!!!"
 event_id: 26b5ada4-8808-45ed-90ca-c66301221b33
 event_date: 2025-10-15
 banner: "../assets/lombokdev/images/KECE2663.JPG"

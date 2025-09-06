@@ -1,0 +1,165 @@
+---
+layout: default
+---
+
+<style>
+  /* minimal styling — adapt to your site CSS / tailwind as needed */
+  .communities-wrap { max-width: 1100px; margin: 0 auto; padding: 24px; padding-top: 90px; }
+  .controls { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+  .controls input, .controls select { padding:8px 10px; font-size:14px; }
+  #speakers-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+  .speaker-card {
+    position:relative;
+    display:flex; flex-direction:column; align-items:center;
+    text-decoration:none; color:inherit;
+    border:1px solid #e6e6e6; border-radius:12px; padding:14px; background:#fff;
+    box-shadow:0 6px 18px rgba(10,10,10,0.03); transition:transform .12s ease;
+  }
+  .speaker-card:hover { transform:translateY(-4px); }
+  .speaker-card img { width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:8px; }
+  .speaker-name { font-weight:600; text-align:center; font-size:0.95rem; line-height:1.2; }
+  .speaker-badge {
+    position:absolute; top:10px; right:10px;
+    background:#0073b1; color:#fff; font-weight:700; font-size:12px;
+    padding:4px 8px; border-radius:999px;
+  }
+</style>
+
+<div class="communities-wrap pt-44 pb-16 px-6 max-w-4xl mx-auto">
+  <h1>{{ page.title | default: "Communities" }}</h1>
+
+  <div class="controls">
+    <input id="search" type="search" placeholder="Search speakers (name / topic / linkedin)..." />
+    <select id="sort">
+      <option value="az">Sort A → Z</option>
+      <option value="za">Sort Z → A</option>
+      <option value="most">Most Appearances</option>
+    </select>
+  </div>
+
+  {%- comment -%}
+    Build an array `speakers` where each item is:
+    key|||display_url|||name|||count
+    key is normalized url used for dedupe
+  {%- endcomment -%}
+
+  {% assign speakers = "" | split: "|" %}
+
+  {% for event in site.events %}
+    {% if event.speakers %}
+      {% for sp in event.speakers %}
+        {% comment %} original display url (may include https) or fallback to name {% endcomment %}
+        {% assign display_url = sp.url | default: sp.name %}
+        {% comment %} create a normalized key for dedupe:
+                    strip scheme, www, remove slashes, lower-case {% endcomment %}
+        {% assign key = display_url | remove: "https://" | remove: "http://" | remove: "www." | replace: "/", "" | downcase %}
+
+        {% assign updated = false %}
+        {% assign new_speakers = "" | split: "|" %}
+
+        {% for item in speakers %}
+          {% if item != "" %}
+            {% assign parts = item | split: "|||" %}
+            {% assign ex_key = parts[0] %}
+            {% assign ex_display = parts[1] %}
+            {% assign ex_name = parts[2] %}
+            {% assign ex_count = parts[3] %}
+            {% if ex_key == key %}
+              {% comment %} choose longest name and increment count {% endcomment %}
+              {% assign cur_name = sp.name %}
+              {% if cur_name.size > ex_name.size %}
+                {% assign chosen_name = cur_name %}
+              {% else %}
+                {% assign chosen_name = ex_name %}
+              {% endif %}
+              {% assign new_count = ex_count | plus: 1 %}
+              {% assign updated_item = ex_key | append: "|||" | append: ex_display | append: "|||" | append: chosen_name | append: "|||" | append: new_count %}
+              {% assign new_speakers = new_speakers | push: updated_item %}
+              {% assign updated = true %}
+            {% else %}
+              {% assign new_speakers = new_speakers | push: item %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% if updated == false %}
+          {% assign new_item = key | append: "|||" | append: display_url | append: "|||" | append: sp.name | append: "|||" | append: "1" %}
+          {% assign new_speakers = new_speakers | push: new_item %}
+        {% endif %}
+
+        {% assign speakers = new_speakers %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+  <!-- Render the grid (render order is the insertion order; client JS will sort) -->
+  <div id="speakers-grid">
+    {% for item in speakers %}
+      {% if item != "" %}
+        {% assign parts = item | split: "|||" %}
+        {% assign key = parts[0] %}
+        {% assign display_url = parts[1] %}
+        {% assign name = parts[2] %}
+        {% assign count = parts[3] %}
+        <!-- anchor to open linkedin in new tab; data attributes used for JS sorting/filtering -->
+        <a class="speaker-card" href="{{ display_url }}" target="_blank" rel="noopener noreferrer"
+           data-name="{{ name | escape }}" data-url="{{ display_url | escape }}" data-count="{{ count }}">
+          <!-- avatar via unavatar.io; pass URL-encoded display_url -->
+          <img src="https://unavatar.io/{{ display_url | url_encode }}" alt="{{ name | escape }}"
+               onerror="this.onerror=null;this.src='/assets/img/avatar-placeholder.png'">
+          <div class="speaker-name">{{ name }}</div>
+          <div class="speaker-badge">{{ count }}x</div>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  (function () {
+    const searchInput = document.getElementById('search');
+    const sortSelect = document.getElementById('sort');
+    const grid = document.getElementById('speakers-grid');
+
+    function getCards() {
+      return Array.from(grid.querySelectorAll('.speaker-card'));
+    }
+
+    function filterCards() {
+      const term = (searchInput.value || '').trim().toLowerCase();
+      getCards().forEach(card => {
+        // searchable text: name + url
+        const name = card.dataset.name.toLowerCase();
+        const url = card.dataset.url.toLowerCase();
+        const visible = name.includes(term) || url.includes(term);
+        card.style.display = visible ? '' : 'none';
+      });
+    }
+
+    function sortCards(order) {
+      const cards = getCards().slice(); // copy
+      cards.sort((a,b) => {
+        const nameA = a.dataset.name.toLowerCase();
+        const nameB = b.dataset.name.toLowerCase();
+        if (order === 'az') return nameA.localeCompare(nameB);
+        if (order === 'za') return nameB.localeCompare(nameA);
+        if (order === 'most') {
+          const ca = parseInt(a.dataset.count || '0', 10);
+          const cb = parseInt(b.dataset.count || '0', 10);
+          // if same count, tie-break by name A→Z
+          if (cb === ca) return nameA.localeCompare(nameB);
+          return cb - ca;
+        }
+        return 0;
+      });
+      // append in sorted order (preserves only visible display settings)
+      cards.forEach(c => grid.appendChild(c));
+    }
+
+    searchInput.addEventListener('input', filterCards);
+    sortSelect.addEventListener('change', e => sortCards(e.target.value));
+
+    // initial sort
+    sortCards('az');
+  })();
+</script>
