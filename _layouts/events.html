@@ -31,25 +31,49 @@ layout: default
   {% endif %}
 
   {% if page.speakers %}
-    <h2 class="text-2xl font-semibold mb-3">Speakers</h2>
-    <ul class="space-y-2 mb-6">
-      {% for sp in page.speakers %}
-        <li>
-          <strong>{{ sp.name }}</strong>
-          {% if sp.url and sp.url contains "linkedin.com" %}
-            <a href="{{ sp.url }}" target="_blank" rel="noopener noreferrer" class="inline-block ml-2">
-              <!-- LinkedIn Icon (SVG) -->
-              <svg class="w-5 h-5 text-blue-600 hover:text-blue-800" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.4 8.34h4.18V24H.4V8.34zm7.95 0h4.01v2.13h.06c.56-1.06 1.93-2.18 3.98-2.18 4.25 0 5.03 2.8 5.03 6.44V24h-4.18v-7.73c0-1.84-.03-4.2-2.56-4.2-2.56 0-2.95 2-2.95 4.06V24H8.35V8.34z"/>
-              </svg>
-            </a>
-          {% endif %}
-          {% if sp.topic %} — {{ sp.topic }}{% endif %}
-        </li>
+    {% assign sorted_speakers = page.speakers | sort: "name" %}
 
+    <h2 class="text-2xl font-semibold mb-3">Speakers</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+      {% for sp in sorted_speakers %}
+        {% if sp.url and sp.url contains "linkedin.com/in/" %}
+          {% assign slug = sp.url | split: "/" | last %}
+          {% assign base = slug | split: "-" | first | downcase %}
+        {% else %}
+          {% assign base = sp.name | split: " " | first | downcase %}
+        {% endif %}
+
+        {% assign file_jpeg = "../assets/lombokdev/speakers/" | append: base | append: ".jpeg" %}
+        {% assign file_jpg  = "../assets/lombokdev/speakers/" | append: base | append: ".jpg" %}
+        {% assign file_png  = "../assets/lombokdev/speakers/" | append: base | append: ".png" %}
+
+        <div class="relative rounded-xl overflow-hidden shadow-lg">
+          <img src="{{ file_jpeg }}"
+              alt="{{ sp.name | escape }}"
+              class="w-full h-56 object-cover"
+              onerror="this.onerror=null;
+                        this.src='{{ file_jpg }}';
+                        this.onerror=function(){this.src='{{ file_png }}'};
+                        this.onerror=function(){this.src='../assets/lombokdev/speakers/placeholder.png'};">
+          
+          <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white p-3 flex items-center justify-between">
+            <span class="font-semibold">{{ sp.name }}</span>
+            {% if sp.url and sp.url contains "linkedin.com" %}
+              <a href="{{ sp.url }}" target="_blank" rel="noopener noreferrer" class="ml-2">
+                <!-- LinkedIn Icon -->
+                <svg class="w-5 h-5 text-blue-400 hover:text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM.4 8.34h4.18V24H.4V8.34zm7.95 0h4.01v2.13h.06c.56-1.06 1.93-2.18 3.98-2.18 4.25 0 5.03 2.8 5.03 6.44V24h-4.18v-7.73c0-1.84-.03-4.2-2.56-4.2-2.56 0-2.95 2-2.95 4.06V24H8.35V8.34z"/>
+                </svg>
+              </a>
+            {% endif %}
+          </div>
+        </div>
       {% endfor %}
-    </ul>
+    </div>
   {% endif %}
+
+
+
 
   {% if page.registration_url %}
     <a href="{{ page.registration_url }}" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Register</a>
