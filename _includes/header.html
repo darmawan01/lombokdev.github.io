@@ -1,8 +1,11 @@
 <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-gray-100">
     <nav class="max-w-4xl mx-auto px-6 py-4">
         <div class="flex items-center justify-between">
-            <a href="{{ '/' | relative_url }}" class="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors">
-                {{ site.title | split: ' |' | first | default: "Your Name" }}
+            <a href="{{ '/' | relative_url }}" class="h-auto w-[170px]">
+                <img
+                    src="/assets/lombokdev/images/logo.svg"
+                    class="w-full h-auto"
+                />
             </a>
             
             <div class="hidden md:flex items-center space-x-8">
