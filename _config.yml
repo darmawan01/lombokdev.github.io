@@ -37,6 +37,8 @@ collections:
   galleries:
     output: true
     permalink: /galleries/:path
+  certificates:
+    output: true
   register:
     output: true
     permalink: /register/:name/
